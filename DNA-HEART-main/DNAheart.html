@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Толкын ❤️</title>
+<!-- Шрифты: Great Vibes для буквы, Dancing Script для таймера -->
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+<style>
+
+body {
+  user-select: none;        /* запрещает выделять текст */
+  -webkit-user-select: none; /* для Chrome/Safari */
+  -moz-user-select: none;    /* для Firefox */
+  -ms-user-select: none;     /* для IE/Edge */
+}
+
+:root {
+  --accent: #ffccd5;
+  --pulse-scale: 1.03;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  font-family: sans-serif;
+}
+
+/* Первая буква */
+.initial {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  width: 100%;
+  font-family: 'Great Vibes', cursive;
+  font-size: 4.6em;
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(255,204,213,0.75);
+  z-index: 5;
+  transform-origin: center;
+  animation: fadeInUp 0.8s ease both, slowPulse 3.6s ease-in-out 0.9s infinite;
+}
+
+/* Таймер */
+#timer {
+  position: absolute;
+  top: 140px;
+  left: 0;
+  width: 100%;
+  font-family: 'Dancing Script', cursive;
+  font-size: 2.6em;
+  color: var(--accent);
+  text-shadow: 0 0 18px rgba(255,150,180,0.95);
+  z-index: 5;
+  transform-origin: center;
+  animation: fadeInUp 0.9s ease 0.25s both, pulse 2.6s ease-in-out 1s infinite;
+}
+
+/* Анимации */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(-14px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(calc(var(--pulse-scale))); }
+  100% { transform: scale(1); }
+}
+@keyframes slowPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(calc(1 + (var(--pulse-scale) - 1)/2)); }
+  100% { transform: scale(1); }
+}
+
+/* Канвасы */
+canvas {
+  display: block;
+}
+
+/* Фоновые белые кружки */
+#hearts-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10; /* <- было 1, ставим 0 */
+  background: transparent;
+}
+
+
+/* Красные сердечки при клике */
+#heart {
+  position: fixed;
+  top:0; left:0;
+  width:100%;
+  height:100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Мини-плеер */
+.custom-player {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  height: 100px;
+  background: #181818cc;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.6);
+  z-index: 6;
+}
+.cover { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+.track-info { flex: 1; margin: 0 16px; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 6px; }
+.track-info .title { font-family: 'Great Vibes', cursive; font-size: 20px; font-weight: normal; color: var(--accent); text-shadow: 0 0 12px rgba(255,204,213,0.75); margin:0; }
+.track-info .artist { font-family: 'Dancing Script', cursive; font-size: 16px; color: var(--accent); text-shadow: 0 0 18px rgba(255,150,180,0.95); margin:0; margin-bottom:4px; }
+#waveform { width: 100%; height: 40px; border-radius: 4px; margin-top:6px; }
+
+.play-btn {
+  background:none; border:none; font-size:28px; color:var(--accent); cursor:pointer; transition: transform 0.2s;
+}
+.play-btn:hover { transform: scale(1.1); }
+
+/* Письмо */
+#letter-icon {
+  position: fixed; top:50%; right:0; transform:translateY(-50%);
+  width:60px; height:60px; background:#ffccd5; color:#000;
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:28px; cursor:pointer; z-index:11; box-shadow:0 4px 12px rgba(0,0,0,0.4);
+  transition: transform 0.4s ease, background 0.4s ease;
+}
+#letter-icon:hover { background:#ffd9e0; transform: translateY(-50%) scale(1.08); }
+
+.love-letter {
+  position: fixed; top:50%; right:-320px; transform:translateY(-50%);
+  width:320px; padding:24px; border-radius:16px; background: rgba(255,223,230,0.95);
+  box-shadow:0 6px 25px rgba(0,0,0,0.6); color:#000; transition:right 0.4s ease; z-index:10;
+}
+.love-letter.show { right:50px; }
+.love-letter button { display:block; width:100%; padding:12px 0; border:none; border-radius:12px;
+  background: linear-gradient(135deg, #ffccd5, #ffd9e0); font-size:18px; font-weight:bold; color:#000;
+  cursor:pointer; margin-top:20px; transition: transform 0.2s, box-shadow 0.2s; }
+.love-letter button:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(255,150,180,0.5);
+  background: linear-gradient(135deg,#ffd9e0,#ffe4e8); }
+
+  .photo-slider {
+  position: fixed;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  width: 220px;       /* ширина контейнера */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;           /* расстояние между фотками */
+  z-index: 12;
+  background: rgba(0,0,0,0.2); /* полупрозрачный фон */
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+}
+
+.photo-slider img {
+  width: 100%;      /* картинка = ширине контейнера */
+  height: 160px;    /* одинаковая высота для всех фоток */
+  object-fit: cover;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.photo-slider img:hover {
+  transform: scale(1.05);
+}
+
+
+</style>
+</head>
+<body>
+<div class="initial">Т ❤️</div>
+<div id="timer">Загрузка таймера...</div>
+
+<!-- Канвас для сердца -->
+<canvas id="heart"></canvas>
+<canvas id="hearts-canvas"></canvas>
+
+
+
+<!-- Иконка письма сбоку -->
+<div id="letter-icon">✉️</div>
+
+<!-- Само письмо -->
+<div class="love-letter">
+  <h2>Для любимой ❤️</h2>
+  <p>Жанымка <br>
+    Я очень рад, что ты есть в моей жизни.
+    Каждый день с тобой — это счастье, которое я не перестану ценить.
+    Ты делаешь мой мир лучшим, и я хочу, чтобы ты всегда это знала.<br>
+    С любовью, М.</p>
+  <button id="close-letter">Скрыть</button>
+</div>
+
+<canvas id="hearts-canvas"></canvas>
+
+<div class="photo-slider">
+  <img src="photo1.jpeg" alt="Фото 1">
+  <img src="photo2.jpeg" alt="Фото 2">
+  <img src="photo3.jpeg" alt="Фото 3">
+  <img src="photo4.jpeg" alt="Фото 4">
+</div>
+
+
+
+
+<!-- Мини-плеер -->
+<div class="custom-player">
+  <img src="myphoto.jpg" alt="Фото" class="cover">
+  <div class="track-info">
+    <div class="title">Cinnamon Girl</div>
+    <div class="artist">Lana Del Rey</div>
+    <canvas id="waveform" height="60"></canvas>
+  </div>
+  <button id="play-btn" class="play-btn">▶</button>
+  <audio id="audio" src="cinnamon.mp3"></audio>
+</div>
+
+<script src="./script.js"></script>
+
+<script>
+// Таймер "Мы вместе"
+const startDate = new Date("2025-07-01T00:00:00");
+
+function updateTimer() {
+  const now = new Date();
+  const diff = now - startDate;
+  if(diff < 0){
+    document.getElementById("timer").textContent = "До нашей даты ещё осталось!";
+    return;
+  }
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hours = Math.floor((diff / (1000*60*60)) % 24);
+  const minutes = Math.floor((diff / (1000*60)) % 60);
+  const seconds = Math.floor((diff / 1000) % 60);
+  document.getElementById("timer").textContent =
+    `Мы вместе уже ${days} дн. ${hours} ч. ${minutes} мин. ${seconds} сек.`;
+}
+
+setInterval(updateTimer, 1000);
+updateTimer();
+
+// Мини-плеер с плавными волнами
+(function(){
+  const audio = document.getElementById("audio");
+  const playBtn = document.getElementById("play-btn");
+  const canvas = document.getElementById("waveform");
+  const ctx = canvas.getContext("2d");
+
+  let isPlaying = false;
+  let audioCtx, analyser, source, dataArray, bufferLength;
+
+  function resizeCanvas() {
+    canvas.width = canvas.offsetWidth;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  playBtn.addEventListener("click", () => {
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      source = audioCtx.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      analyser.fftSize = 256;
+      bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+    }
+
+    if(isPlaying){
+      audio.pause();
+      playBtn.textContent = "▶";
+    } else {
+      audio.play();
+      audioCtx.resume();
+      playBtn.textContent = "⏸";
+      drawWave();
+    }
+    isPlaying = !isPlaying;
+  });
+  
+  
+  if (!audioCtx) {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
+  source = audioCtx.createMediaElementSource(audio);
+  source.connect(analyser);
+  analyser.connect(audioCtx.destination);
+  analyser.fftSize = 256;
+  bufferLength = analyser.frequencyBinCount;
+  dataArray = new Uint8Array(bufferLength);
+  prevYs = new Array(bufferLength).fill(canvas.height / 2); // <- вот здесь
+}
+
+
+function drawWave() {
+  requestAnimationFrame(drawWave);
+  analyser.getByteTimeDomainData(dataArray);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(255,204,213,0.8)';
+  ctx.beginPath();
+
+  const sliceWidth = canvas.width / bufferLength;
+  let x = 0;
+
+  for (let i = 0; i < bufferLength; i++) {
+    const v = dataArray[i] / 128.0; // значение от 0 до 2
+    let y = (v - 1) * (canvas.height / 2) * 0.6 + canvas.height / 2; // амплитуда 0.6
+    y = prevYs[i] + (y - prevYs[i]) * 0.2; // плавное сглаживание
+    prevYs[i] = y;
+
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+
+    x += sliceWidth;
+  }
+
+  ctx.stroke();
+}
+
+
+(function(){
+  const canvas = document.getElementById('hearts-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = 2 + Math.random() * 3;  // маленький размер
+      this.speedY = 0.2 + Math.random() * 0.5; // очень медленное движение
+      this.speedX = (Math.random() - 0.5) * 0.2; // лёгкое раскачивание
+      this.opacity = 0.2 + Math.random() * 0.3; // прозрачность
+    }
+    update() {
+      this.y += this.speedY;
+      this.x += this.speedX;
+      if(this.y > canvas.height) this.y = -this.size;
+      if(this.x > canvas.width) this.x = 0;
+      if(this.x < 0) this.x = canvas.width;
+    }
+    draw() {
+      ctx.fillStyle = `rgba(255, 204, 213, ${this.opacity})`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  const particles = [];
+  for(let i=0; i<50; i++) particles.push(new Particle());
+
+  function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+})();
+
+
+const letter = document.querySelector('.love-letter');
+const letterIcon = document.getElementById('letter-icon');
+const closeBtn = document.getElementById('close-letter');
+
+// Открытие письма
+letterIcon.addEventListener('click', () => {
+  letter.classList.add('show');
+});
+
+// Закрытие письма
+closeBtn.addEventListener('click', () => {
+  letter.classList.remove('show');
+});
+
+// Плавающие сердечки при клике
+(function(){
+  const canvas = document.createElement('canvas');
+  document.body.appendChild(canvas);
+  canvas.style.position = 'fixed';
+  canvas.style.top = '0';
+  canvas.style.left = '0';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.pointerEvents = 'none';
+  canvas.style.zIndex = '2';
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  class Heart {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.size = 12 + Math.random() * 8; // исправлено
+      this.speedY = 0.5 + Math.random() * 1;
+      this.speedX = (Math.random() - 0.5) * 0.5;
+      this.opacity = 1;
+      this.life = 0;
+      this.maxLife = 80 + Math.random() * 30;
+    }
+    update() {
+      this.y -= this.speedY;
+      this.x += this.speedX;
+      this.life++;
+      this.opacity = 1 - this.life / this.maxLife;
+    }
+    draw() {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.scale(this.size/20, this.size/20);
+      ctx.fillStyle = `rgba(255, 50, 50, ${this.opacity})`;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-5, -5, -10, 5, 0, 10);
+      ctx.bezierCurveTo(10, 5, 5, -5, 0, 0);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  const hearts = [];
+
+  window.addEventListener('click', (e) => {
+    for(let i=0; i<3; i++){
+      hearts.push(new Heart(e.clientX, e.clientY));
+    }
+  });
+
+  function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(let i=hearts.length-1; i>=0; i--){
+      hearts[i].update();
+      hearts[i].draw();
+      if(hearts[i].life > hearts[i].maxLife) hearts.splice(i,1);
+    }
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+})();
+
+
+const track = document.querySelector('.slider-track');
+const prevBtn = document.querySelector('.slider-btn.prev');
+const nextBtn = document.querySelector('.slider-btn.next');
+
+let offset = 0;
+const step = 132; // высота картинки + gap (120 + 12)
+
+function getVisibleCount() {
+  return Math.floor(track.parentElement.offsetHeight / step);
+}
+
+function getMaxOffset() {
+  const visibleCount = getVisibleCount();
+  return (track.children.length - visibleCount) * step;
+}
+
+function moveSlider(direction) {
+  offset += step * direction;
+  const maxOffset = getMaxOffset();
+  if (offset < 0) offset = maxOffset;
+  if (offset > maxOffset) offset = 0;
+  track.style.transform = `translateY(-${offset}px)`;
+}
+
+prevBtn.addEventListener('click', () => moveSlider(-1));
+nextBtn.addEventListener('click', () => moveSlider(1));
+
+// Автопрокрутка каждые 3 секунды
+let autoSlide = setInterval(() => moveSlider(1), 3000);
+
+// Перезапуск автопрокрутки при ручной прокрутке
+[prevBtn, nextBtn].forEach(btn => {
+  btn.addEventListener('click', () => {
+    clearInterval(autoSlide);
+    autoSlide = setInterval(() => moveSlider(1), 3000);
+  });
+});
+
+// Пересчёт при изменении размера окна
+window.addEventListener('resize', () => {
+  const maxOffset = getMaxOffset();
+  if (offset > maxOffset) offset = maxOffset;
+  track.style.transform = `translateY(-${offset}px)`;
+});
+
+
+
+(function(){
+  const canvas = document.getElementById('hearts-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = 2 + Math.random() * 3;
+      this.speedY = 0.2 + Math.random() * 0.5;
+      this.speedX = (Math.random() - 0.5) * 0.2;
+      this.opacity = 0.2 + Math.random() * 0.3;
+    }
+    update() {
+      this.y += this.speedY;
+      this.x += this.speedX;
+      if(this.y > canvas.height) this.y = -this.size;
+      if(this.x > canvas.width) this.x = 0;
+      if(this.x < 0) this.x = canvas.width;
+    }
+    draw() {
+      ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  const particles = [];
+  for(let i=0; i<50; i++) particles.push(new Particle());
+
+  function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+})();
+
+// Отключаем правый клик
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// Отключаем Ctrl+C, Ctrl+V, Ctrl+X
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && ['c','v','x','a'].includes(e.key.toLowerCase())) {
+    e.preventDefault();
+  }
+});
+
+// Отключаем выделение мышью (по старинке)
+document.addEventListener('selectstart', e => e.preventDefault());
+
+
+})();
+
+</script>
+</body>
+</html>
