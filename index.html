@@ -780,6 +780,47 @@ document.addEventListener('selectstart', e => e.preventDefault());
 
 })();
 
+
+// Уведомление о заходе: пуш через ntfy.sh в приложение на телефоне.
+// Тема в адресе и есть весь "ключ" — кто её знает, тот может слать и читать,
+// поэтому она случайная. Никаких токенов в коде нет.
+// Отправляется только то, что браузер и так сообщает любому сайту:
+// время, тип устройства, ОС, браузер, язык, экран, источник перехода.
+(function(){
+  const TOPIC = 'tolkyn-4ttzfcm6s1a32enu';
+  const ua = navigator.userAgent;
+
+  const mobile = /iPhone|iPad|Android/i.test(ua);
+  const os =
+    /iPhone|iPad/i.test(ua) ? 'iPhone/iPad' :
+    /Android/i.test(ua)     ? 'Android' :
+    /Macintosh/i.test(ua)   ? 'Mac' :
+    /Windows/i.test(ua)     ? 'Windows' : 'другое';
+  const browser =
+    /CriOS|Chrome/i.test(ua)  ? 'Chrome' :
+    /FxiOS|Firefox/i.test(ua) ? 'Firefox' :
+    /Safari/i.test(ua)        ? 'Safari' : 'другой';
+
+  const from = document.referrer
+    ? (function(){ try { return new URL(document.referrer).hostname; } catch(e){ return document.referrer; } })()
+    : 'прямая ссылка';
+
+  const lines = [
+    'Время у гостя: ' + new Date().toLocaleString('ru-RU'),
+    'Устройство: ' + (mobile ? 'телефон' : 'компьютер') + ', ' + os,
+    'Браузер: ' + browser,
+    'Язык: ' + (navigator.language || '—'),
+    'Экран: ' + screen.width + '×' + screen.height,
+    'Переход: ' + from
+  ];
+
+  fetch('https://ntfy.sh/' + TOPIC, {
+    method: 'POST',
+    headers: { 'Title': 'Кто-то открыл сайт', 'Tags': 'heart', 'Priority': 'default' },
+    body: lines.join('\n')
+  }).catch(function(){ /* молча: уведомление не должно ломать страницу */ });
+})();
+
 </script>
 </body>
 </html>
