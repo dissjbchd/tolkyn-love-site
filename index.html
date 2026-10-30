@@ -199,18 +199,6 @@ canvas {
 .love-letter button:hover { transform:translateY(-2px); background: rgba(255,204,213,0.16);
   box-shadow:0 6px 18px rgba(255,150,180,0.22); }
 
-@media (max-width: 700px) {
-  #timer { font-size: 1.7em; }
-  #timer-sub { font-size: 1.05em; }
-  #timer-block { padding: 0 16px; }
-  .love-letter { width: calc(100% - 32px); right: -110%; padding:24px 20px; }
-  .love-letter.show { right: 16px; }
-  body:has(.love-letter.show) #timer-block { transform: none; }
-  /* на телефоне колонка фото перекрывала письмо — убираем её, пока письмо открыто */
-  .photo-slider { transition: opacity 0.4s ease; }
-  body:has(.love-letter.show) .photo-slider { opacity: 0; pointer-events: none; }
-}
-
   .photo-slider {
   position: fixed;
   top: 50%;
@@ -240,7 +228,60 @@ canvas {
   transform: scale(1.05);
 }
 
+.photo-slider { transition: opacity 0.4s ease; }
 
+/* ---- Телефон ----
+   На узком экране исходная раскладка разъезжается: колонка фото занимает
+   треть экрана слева и лезет на таймер, плеер в 420px не влезает.
+   Собираем всё в колонку по центру: шапка сверху, сердце в середине,
+   лента фото и плеер прижаты к низу. */
+@media (max-width: 700px) {
+  .initial { top: 16px; font-size: 3.2em; }
+
+  #timer-block { top: 92px; padding: 0 14px; }
+  #timer { font-size: 1.5em; line-height: 1.25; }
+  #timer .t-label, #timer .t-count { display: block; }
+  #timer-sub { margin-top: 6px; font-size: 0.95em; }
+  body:has(.love-letter.show) #timer-block { transform: none; }
+
+  /* фотки — горизонтальной лентой над плеером, а не колонкой слева */
+  .photo-slider {
+    top: auto; bottom: 116px; left: 10px; right: 10px;
+    width: auto; transform: none;
+    flex-direction: row; gap: 6px; padding: 6px;
+  }
+  .photo-slider img { flex: 1 1 0; width: auto; height: 76px; border-radius: 10px; }
+
+  .custom-player {
+    left: 12px; right: 12px; width: auto; transform: none;
+    bottom: 14px; height: 84px; padding: 10px 12px;
+  }
+  .cover { width: 60px; height: 60px; }
+  .track-info { margin: 0 10px; padding-top: 2px; }
+  .track-info .title { font-size: 17px; }
+  .track-info .artist { font-size: 14px; }
+  #waveform { height: 26px; margin-top: 4px; }
+  .play-btn { font-size: 24px; }
+
+  #letter-icon { width: 52px; height: 52px; font-size: 22px; }
+
+  /* письмо тянем между шапкой и плеером, а не центрируем:
+     иначе на коротком экране оно наезжало на плеер */
+  .love-letter {
+    width: calc(100% - 24px); right: -110%; padding: 22px 20px;
+    top: 64px; bottom: 106px; transform: none;
+    display: flex; flex-direction: column; justify-content: center;
+    overflow-y: auto;
+  }
+  .love-letter.show { right: 12px; }
+  .love-letter p { font-size: 20px; }
+  .love-letter button { margin-top: 18px; flex-shrink: 0; }
+  /* конверт лежал поверх открытого письма */
+  #letter-icon { transition: transform 0.4s ease, background 0.4s ease, opacity 0.3s ease; }
+  body:has(.love-letter.show) #letter-icon { opacity: 0; pointer-events: none; }
+  /* колонка фото перекрывала письмо — прячем её, пока письмо открыто */
+  body:has(.love-letter.show) .photo-slider { opacity: 0; pointer-events: none; }
+}
 </style>
 </head>
 <body>
@@ -312,8 +353,11 @@ function updateTimer() {
   const hours = Math.floor((diff / (1000*60*60)) % 24);
   const minutes = Math.floor((diff / (1000*60)) % 60);
   const seconds = Math.floor((diff / 1000) % 60);
-  document.getElementById("timer").textContent =
-    `Могли быть вместе уже ${days} дн. ${hours} ч. ${minutes} мин. ${seconds} сек.`;
+  // фраза и счётчик — отдельными кусками: на телефоне они встают
+  // в две строки целиком, а не рвутся посреди цифр
+  document.getElementById("timer").innerHTML =
+    `<span class="t-label">Могли быть вместе уже</span> ` +
+    `<span class="t-count">${days} дн. ${hours} ч. ${minutes} мин. ${seconds} сек.</span>`;
 }
 
 setInterval(updateTimer, 1000);
