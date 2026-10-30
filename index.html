@@ -52,7 +52,11 @@ body {
   left: 0;
   width: 100%;
   z-index: 5;
+  transition: transform 0.4s ease;
 }
+
+/* когда письмо открыто — уводим таймер влево, чтобы карточка его не перекрывала */
+body:has(.love-letter.show) #timer-block { transform: translateX(-110px) scale(0.8); }
 
 #timer {
   font-family: 'Dancing Script', cursive;
@@ -147,27 +151,54 @@ canvas {
 /* Письмо */
 #letter-icon {
   position: fixed; top:50%; right:0; transform:translateY(-50%);
-  width:60px; height:60px; background:#ffccd5; color:#000;
-  border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-size:28px; cursor:pointer; z-index:11; box-shadow:0 4px 12px rgba(0,0,0,0.4);
-  transition: transform 0.4s ease, background 0.4s ease;
+  width:60px; height:60px;
+  background: rgba(34,18,24,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border:1px solid rgba(255,204,213,0.28); border-radius:50% 0 0 50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:26px; cursor:pointer; z-index:11;
+  box-shadow:0 4px 18px rgba(0,0,0,0.6), 0 0 22px rgba(255,150,180,0.14);
+  transition: transform 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
 }
-#letter-icon:hover { background:#ffd9e0; transform: translateY(-50%) scale(1.08); }
+#letter-icon:hover { background: rgba(60,30,40,0.9); transform: translateY(-50%) scale(1.08);
+  box-shadow:0 4px 18px rgba(0,0,0,0.6), 0 0 32px rgba(255,150,180,0.3); }
 
 .love-letter {
-  position: fixed; top:50%; right:-320px; transform:translateY(-50%);
-  width:320px; padding:24px; border-radius:16px; background: rgba(255,223,230,0.95);
-  box-shadow:0 6px 25px rgba(0,0,0,0.6); color:#000; transition:right 0.4s ease; z-index:10;
+  position: fixed; top:50%; right:-340px; transform:translateY(-50%);
+  width:340px; padding:30px 28px; border-radius:20px;
+  background: linear-gradient(160deg, rgba(34,18,24,0.88), rgba(14,9,12,0.92));
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border:1px solid rgba(255,204,213,0.18);
+  box-shadow:0 18px 50px rgba(0,0,0,0.75), 0 0 40px rgba(255,150,180,0.10);
+  color: rgba(255,240,243,0.88); transition:right 0.4s ease; z-index:10;
 }
 .love-letter.show { right:50px; }
-.love-letter p { margin:0 0 12px; line-height:1.5; }
-.love-letter .signoff { margin:18px 0 0; font-family:'Dancing Script', cursive;
-  font-size:24px; line-height:1.3; }
-.love-letter button { display:block; width:100%; padding:12px 0; border:none; border-radius:12px;
-  background: linear-gradient(135deg, #ffccd5, #ffd9e0); font-size:18px; font-weight:bold; color:#000;
-  cursor:pointer; margin-top:20px; transition: transform 0.2s, box-shadow 0.2s; }
-.love-letter button:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(255,150,180,0.5);
-  background: linear-gradient(135deg,#ffd9e0,#ffe4e8); }
+.love-letter h2 {
+  margin:0 0 20px; font-family:'Dancing Script', cursive; font-weight:normal;
+  font-size:34px; color: var(--accent); text-shadow:0 0 18px rgba(255,150,180,0.55);
+}
+.love-letter p { margin:0 0 14px; font-size:15px; line-height:1.65;
+  letter-spacing:0.2px; color: rgba(255,238,241,0.82); }
+.love-letter .signoff { margin:22px 0 0; padding-top:18px;
+  border-top:1px solid rgba(255,204,213,0.14);
+  font-family:'Dancing Script', cursive; font-size:26px; line-height:1.35;
+  color: var(--accent); text-shadow:0 0 14px rgba(255,150,180,0.4); }
+.love-letter button { display:block; width:100%; padding:11px 0; border-radius:12px;
+  border:1px solid rgba(255,204,213,0.3); background: rgba(255,204,213,0.07);
+  font-family:'Dancing Script', cursive; font-size:20px; color: var(--accent);
+  cursor:pointer; margin-top:24px; transition: background 0.25s, transform 0.2s, box-shadow 0.25s; }
+.love-letter button:hover { transform:translateY(-2px); background: rgba(255,204,213,0.16);
+  box-shadow:0 6px 18px rgba(255,150,180,0.22); }
+
+@media (max-width: 700px) {
+  #timer { font-size: 1.7em; }
+  #timer-sub { font-size: 1.05em; }
+  .love-letter { width: calc(100% - 32px); right: -110%; padding:24px 20px; }
+  .love-letter.show { right: 16px; }
+  body:has(.love-letter.show) #timer-block { transform: none; }
+  /* на телефоне колонка фото перекрывала письмо — убираем её, пока письмо открыто */
+  .photo-slider { transition: opacity 0.4s ease; }
+  body:has(.love-letter.show) .photo-slider { opacity: 0; pointer-events: none; }
+}
 
   .photo-slider {
   position: fixed;
