@@ -201,6 +201,7 @@ canvas {
   box-shadow:0 4px 18px rgba(0,0,0,0.6), 0 0 32px rgba(255,150,180,0.3); }
 
 .love-letter {
+  --ls: 1;
   position: fixed; top:50%; right:-340px; transform:translateY(-50%);
   width:340px; padding:30px 28px; border-radius:20px;
   background: linear-gradient(160deg, rgba(34,18,24,0.88), rgba(14,9,12,0.92));
@@ -210,20 +211,27 @@ canvas {
   color: rgba(255,240,243,0.88); transition:right 0.4s ease; z-index:10;
 }
 .love-letter.show { right:50px; }
+/* Размеры внутри письма завязаны на --ls: скрипт ужимает его так,
+   чтобы письмо целиком помещалось на экран без прокрутки */
 .love-letter h2 {
-  margin:0 0 18px; font-family:'Caveat', cursive; font-weight:600;
-  font-size:36px; color: var(--accent); text-shadow:0 0 18px rgba(255,150,180,0.55);
+  margin:0 0 calc(18px * var(--ls)); font-family:'Caveat', cursive; font-weight:600;
+  font-size: calc(36px * var(--ls)); color: var(--accent);
+  text-shadow:0 0 18px rgba(255,150,180,0.55);
 }
-.love-letter p { margin:0 0 12px; font-family:'Caveat', cursive; font-size:21px;
+.love-letter p { margin:0 0 calc(12px * var(--ls)); font-family:'Caveat', cursive;
+  font-size: calc(21px * var(--ls));
   line-height:1.5; color: rgba(255,238,241,0.88); }
-.love-letter .signoff { margin:20px 0 0; padding-top:16px;
+.love-letter .signoff { margin: calc(20px * var(--ls)) 0 0; padding-top: calc(16px * var(--ls));
   border-top:1px solid rgba(255,204,213,0.14);
-  font-family:'Caveat', cursive; font-weight:600; font-size:32px; line-height:1.3;
+  font-family:'Caveat', cursive; font-weight:600;
+  font-size: calc(32px * var(--ls)); line-height:1.3;
   color: var(--accent); text-shadow:0 0 14px rgba(255,150,180,0.4); }
-.love-letter button { display:block; width:100%; padding:10px 0; border-radius:12px;
+.love-letter button { display:block; width:100%; padding: calc(10px * var(--ls)) 0;
+  border-radius:12px;
   border:1px solid rgba(255,204,213,0.3); background: rgba(255,204,213,0.07);
-  font-family:'Caveat', cursive; font-size:24px; color: var(--accent);
-  cursor:pointer; margin-top:24px; transition: background 0.25s, transform 0.2s, box-shadow 0.25s; }
+  font-family:'Caveat', cursive; font-size: calc(24px * var(--ls)); color: var(--accent);
+  cursor:pointer; margin-top: calc(24px * var(--ls));
+  transition: background 0.25s, transform 0.2s, box-shadow 0.25s; }
 .love-letter button:hover { transform:translateY(-2px); background: rgba(255,204,213,0.16);
   box-shadow:0 6px 18px rgba(255,150,180,0.22); }
 
@@ -296,14 +304,14 @@ canvas {
   /* письмо тянем между шапкой и плеером, а не центрируем:
      иначе на коротком экране оно наезжало на плеер */
   .love-letter {
-    width: calc(100% - 24px); right: -110%; padding: 22px 20px;
-    top: 64px; bottom: 106px; transform: none;
+    width: calc(100% - 24px); right: -110%;
+    padding: calc(22px * var(--ls)) 20px;
+    top: 60px; bottom: 104px; transform: none;
     display: flex; flex-direction: column; justify-content: center;
-    overflow-y: auto;
+    overflow: hidden;
   }
   .love-letter.show { right: 12px; }
-  .love-letter p { font-size: 20px; }
-  .love-letter button { margin-top: 18px; flex-shrink: 0; }
+  .love-letter button { margin-top: calc(18px * var(--ls)); flex-shrink: 0; }
   /* конверт лежал поверх открытого письма */
   #letter-icon { transition: transform 0.4s ease, background 0.4s ease, opacity 0.3s ease; }
   body:has(.love-letter.show) #letter-icon { opacity: 0; pointer-events: none; }
@@ -530,8 +538,36 @@ const letter = document.querySelector('.love-letter');
 const letterIcon = document.getElementById('letter-icon');
 const closeBtn = document.getElementById('close-letter');
 
+// Подгоняем письмо под высоту экрана, чтобы его не приходилось листать.
+// На телефоне у карточки заданы и top, и bottom — значит высота фиксирована,
+// и если текст выше, ужимаем его через --ls, пока не влезет.
+function fitLetter() {
+  letter.style.setProperty('--ls', 1);
+  // на время замера прижимаем содержимое к верху: при justify-content:center
+  // лишнее уезжает вверх за край и scrollHeight этого не видит
+  const prevJustify = letter.style.justifyContent;
+  letter.style.justifyContent = 'flex-start';
+
+  let scale = 1;
+  while (scale > 0.68 && letter.scrollHeight > letter.clientHeight) {
+    scale = Math.round((scale - 0.04) * 100) / 100;
+    letter.style.setProperty('--ls', scale);
+  }
+
+  letter.style.justifyContent = prevJustify;
+}
+
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(fitLetter);
+} else {
+  window.addEventListener('load', fitLetter);
+}
+window.addEventListener('resize', fitLetter);
+window.addEventListener('orientationchange', () => setTimeout(fitLetter, 200));
+
 // Открытие письма
 letterIcon.addEventListener('click', () => {
+  fitLetter();
   letter.classList.add('show');
 });
 
