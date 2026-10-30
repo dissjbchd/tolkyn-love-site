@@ -40,7 +40,7 @@ body {
   top: 28px;
   left: 0;
   width: 100%;
-  font-family: 'Marck Script', cursive;
+  font-family: 'Great Vibes', 'Snell Roundhand', 'Marck Script', cursive;
   font-size: 4.6em;
   color: var(--accent);
   text-shadow: 0 0 12px rgba(255,204,213,0.75);
@@ -66,7 +66,10 @@ body {
 body:has(.love-letter.show) #timer-block { transform: translateX(-110px) scale(0.8); }
 
 #timer {
-  font-family: 'Marck Script', cursive;
+  /* латиница и цифры — Dancing Script; кириллицы в нём нет, поэтому она
+     берётся из следующего шрифта: на маке Snell Roundhand, в остальных
+     системах его нет и подхватывается Marck Script (а не Comic Sans) */
+  font-family: 'Dancing Script', 'Snell Roundhand', 'Marck Script', cursive;
   font-size: 2.6em;
   color: var(--accent);
   text-shadow: 0 0 18px rgba(255,150,180,0.95);
@@ -76,7 +79,7 @@ body:has(.love-letter.show) #timer-block { transform: translateX(-110px) scale(0
 
 #timer-sub {
   margin-top: 10px;
-  font-family: 'Marck Script', cursive;
+  font-family: 'Dancing Script', 'Snell Roundhand', 'Marck Script', cursive;
   font-size: 1.5em;
   color: rgba(255,204,213,0.78);
   text-shadow: 0 0 10px rgba(255,150,180,0.5);
