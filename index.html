@@ -160,6 +160,9 @@ canvas {
   box-shadow:0 6px 25px rgba(0,0,0,0.6); color:#000; transition:right 0.4s ease; z-index:10;
 }
 .love-letter.show { right:50px; }
+.love-letter p { margin:0 0 12px; line-height:1.5; }
+.love-letter .signoff { margin:18px 0 0; font-family:'Dancing Script', cursive;
+  font-size:24px; line-height:1.3; }
 .love-letter button { display:block; width:100%; padding:12px 0; border:none; border-radius:12px;
   background: linear-gradient(135deg, #ffccd5, #ffd9e0); font-size:18px; font-weight:bold; color:#000;
   cursor:pointer; margin-top:20px; transition: transform 0.2s, box-shadow 0.2s; }
@@ -216,12 +219,13 @@ canvas {
 
 <!-- Само письмо -->
 <div class="love-letter">
-  <h2>Для любимой ❤️</h2>
-  <p>Жанымка <br>
-    Я очень рад, что ты есть в моей жизни.
-    Каждый день с тобой — это счастье, которое я не перестану ценить.
-    Ты делаешь мой мир лучшим, и я хочу, чтобы ты всегда это знала.<br>
-    С любовью, М.</p>
+  <h2>Жанымка</h2>
+  <p>Спасибо тебе за время, за тёплые моменты, за всё, что между нами было.</p>
+  <p>Пусть у тебя всё будет хорошо. Будь счастлива.</p>
+  <p>И надеюсь, ты это прочитаешь. Не держи на меня зла за последнюю нашу встречу,
+    я обманул тогда тебя специально. Хотел, чтобы ты меня возненавидела и смогла отпустить.
+    Чтобы жила дальше.</p>
+  <p class="signoff">Так живи.<br>Любовь моя.</p>
   <button id="close-letter">Скрыть</button>
 </div>
 
