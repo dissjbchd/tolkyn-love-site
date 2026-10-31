@@ -786,6 +786,12 @@ document.addEventListener('selectstart', e => e.preventDefault());
 // поэтому она случайная. Никаких токенов в коде нет.
 // Отправляется только то, что браузер и так сообщает любому сайту:
 // время, тип устройства, ОС, браузер, язык, экран, источник перехода.
+//
+// ВАЖНО про формат запроса: заголовки Title/Tags делают запрос "непростым",
+// браузер шлёт preflight, а ntfy отвечает Access-Control-Allow-Headers: *,
+// и эту звёздочку WebKit (весь Safari и все браузеры на iOS) не принимает —
+// запрос отваливался молча. Поэтому всё кладём в JSON-тело с Content-Type
+// text/plain: такой запрос CORS считает простым и preflight не делает.
 (function(){
   const TOPIC = 'tolkyn-4ttzfcm6s1a32enu';
   const ua = navigator.userAgent;
@@ -814,11 +820,29 @@ document.addEventListener('selectstart', e => e.preventDefault());
     'Переход: ' + from
   ];
 
-  fetch('https://ntfy.sh/' + TOPIC, {
-    method: 'POST',
-    headers: { 'Title': 'Кто-то открыл сайт', 'Tags': 'heart', 'Priority': 'default' },
-    body: lines.join('\n')
-  }).catch(function(){ /* молча: уведомление не должно ломать страницу */ });
+  const payload = JSON.stringify({
+    topic: TOPIC,
+    title: 'Кто-то открыл сайт',
+    tags: ['heart'],
+    message: lines.join('\n')
+  });
+
+  try {
+    // sendBeacon переживает уход со страницы и тоже не вызывает preflight
+    let sent = false;
+    if (navigator.sendBeacon) {
+      sent = navigator.sendBeacon('https://ntfy.sh/',
+        new Blob([payload], { type: 'text/plain' }));
+    }
+    if (!sent) {
+      fetch('https://ntfy.sh/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: payload,
+        keepalive: true
+      }).catch(function(){ /* молча: уведомление не должно ломать страницу */ });
+    }
+  } catch (e) { /* молча */ }
 })();
 
 </script>
