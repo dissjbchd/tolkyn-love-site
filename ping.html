@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Проверка маячка</title>
+<style>
+  body { margin:0; padding:20px; background:#111; color:#eee;
+         font-family:-apple-system, system-ui, sans-serif; font-size:15px; line-height:1.5; }
+  h1 { font-size:18px; margin:0 0 16px; }
+  #log { white-space:pre-wrap; word-break:break-word; }
+  .ok   { color:#7ee787; }
+  .fail { color:#ff7b72; }
+  .note { color:#8b949e; }
+</style>
+</head>
+<body>
+<h1>Проверка маячка</h1>
+<div id="log"></div>
+
+<script>
+var logEl = document.getElementById('log');
+function log(text, cls) {
+  var d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.textContent = text;
+  logEl.appendChild(d);
+}
+
+log('Браузер: ' + navigator.userAgent, 'note');
+log('—');
+
+var TOPIC = 'tolkyn-4ttzfcm6s1a32enu';
+var payload = JSON.stringify({
+  topic: TOPIC,
+  title: 'Проверка со страницы ping',
+  tags: ['wrench'],
+  message: 'Если это сообщение пришло — отправка из браузера работает.'
+});
+
+// 1. sendBeacon
+try {
+  if (navigator.sendBeacon) {
+    var blob = new Blob([payload], { type: 'text/plain' });
+    var queued = navigator.sendBeacon('https://ntfy.sh/', blob);
+    log('1. sendBeacon: ' + (queued ? 'поставлен в очередь' : 'ОТКАЗ'),
+        queued ? 'ok' : 'fail');
+  } else {
+    log('1. sendBeacon: не поддерживается', 'fail');
+  }
+} catch (e) {
+  log('1. sendBeacon: исключение — ' + e.message, 'fail');
+}
+
+// 2. fetch
+fetch('https://ntfy.sh/', {
+  method: 'POST',
+  headers: { 'Content-Type': 'text/plain' },
+  body: payload
+})
+.then(function (r) {
+  log('2. fetch: ответ ' + r.status + ' ' + r.statusText, r.ok ? 'ok' : 'fail');
+})
+.catch(function (e) {
+  log('2. fetch: ОШИБКА — ' + e.name + ': ' + e.message, 'fail');
+});
+
+// 3. простой GET к ntfy — проверка, что домен вообще достижим
+fetch('https://ntfy.sh/' + TOPIC + '/json?poll=1')
+.then(function (r) { log('3. связь с ntfy.sh: ' + r.status, 'ok'); })
+.catch(function (e) { log('3. связь с ntfy.sh: ОШИБКА — ' + e.message, 'fail'); });
+
+// 4. контрольная точка: сторонний домен, чтобы отличить
+//    «не работает ntfy» от «не работают внешние запросы вообще»
+fetch('https://api.github.com/zen')
+.then(function (r) { log('4. другой внешний домен: ' + r.status, 'ok'); })
+.catch(function (e) { log('4. другой внешний домен: ОШИБКА — ' + e.message, 'fail'); });
+</script>
+</body>
+</html>
